@@ -52,7 +52,13 @@ run: debug
 run-release: release
 	$(BUILD_RELEASE_DIR)/$(TARGET)
 
+test:
+	echo "Testing debug"
+
+test-release:
+	echo "Testing release"
+
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: all debug release run run-release clean
+.PHONY: all clean debug release run run-release test

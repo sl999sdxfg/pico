@@ -24,7 +24,7 @@ make clean       # cleans build files
 
 ### Todo:
 
-- [ x ] Project setup & infrastructure — repo, README, LICENSE, CONTRIBUTING, build system (Makefile/CMake), dependencies, CI/testing setup.
+- [x] Project setup & infrastructure — repo, README, LICENSE, CONTRIBUTING, build system (Makefile/CMake), dependencies, CI/testing setup.
 - [ ] Step 1: REPL & input reading — interactive prompt + non-interactive script mode; line read and basic handling.
 - [ ] Step 2: Tokenization / lexer — split input into tokens (words, operators, quotes, escapes) with error handling.
 - [ ] Step 3: Parser / command structure — build command structs or AST (argv, redirections, pipes, job flags).
