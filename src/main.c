@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include "ansi.h"
 
@@ -34,25 +35,13 @@ int main()
     } while (chars_read != -1);
 
     printf("Forking\n");
-    int child = fork();
+    pid_t child = fork();
+
     if (child == -1)
     {
         perror("Error fork");
     }
     else if (child == 0)
-    {
-
-        PARENT_PRINT("Running %d", getpid());
-        char *const argv[] = {"uname", "-a", NULL};
-        PARENT_PRINT("Executing uname -a");
-        int exec_status = execvp("uname", argv);
-        if (exec_status == -1)
-        {
-            perror("[PARENT] Error executing command uname -a, terminating");
-            exit(EXIT_FAILURE);
-        }
-    }
-    else
     {
         CHILD_PRINT("Running %d", getpid());
         char *const argv[] = {"ls", "-la", NULL};
@@ -61,6 +50,21 @@ int main()
         if (exec_status == -1)
         {
             perror("[CHILD] Error executing command ls -la, terminating");
+            exit(EXIT_FAILURE);
+        }
+    }
+    else
+    {
+        int status;
+        PARENT_PRINT("Running %d", getpid());
+        PARENT_PRINT("Waiting on child %d", child);
+        waitpid(child, &status, 0);
+        char *const argv[] = {"uname", "-a", NULL};
+        PARENT_PRINT("Executing uname -a");
+        int exec_status = execvp("uname", argv);
+        if (exec_status == -1)
+        {
+            perror("[PARENT] Error executing command uname -a, terminating");
             exit(EXIT_FAILURE);
         }
     }
