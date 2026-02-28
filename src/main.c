@@ -130,6 +130,18 @@ int main()
                     }
                 }
             }
+            else if (strcmp(argv[0], "pwd") == 0)
+            {
+                char cwd[1024] = {'\0'};
+                if (getcwd(cwd, sizeof(cwd)) != NULL)
+                {
+                    printf("%s\n", cwd);
+                }
+                else
+                {
+                    perror("pwd");
+                }
+            }
 
             continue;
         }
