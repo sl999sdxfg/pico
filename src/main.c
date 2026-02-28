@@ -160,6 +160,14 @@ int main()
                     }
                 }
             }
+            else if (strcmp(argv[0], "echo") == 0)
+            {
+                for (int i = 1; argv[i] != NULL; i++)
+                {
+                    printf("%s ", argv[i]);
+                }
+                printf("\n");
+            }
 
             continue;
         }
