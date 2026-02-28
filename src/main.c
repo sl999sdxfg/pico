@@ -1,5 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,6 +72,24 @@ int main()
 #endif
         // handle whitespaces and newlines
         if (argv[0] == NULL)
+        {
+            continue;
+        }
+
+        // check for builtins
+        const char *builtins[] = {"cd", "echo", "exit", "export", "pwd", "env", "set", "unset", NULL};
+        bool builtin_detected = false;
+        for (int i = 0; builtins[i] != NULL; i++)
+        {
+            if (strcmp(argv[0], builtins[i]) == 0)
+            {
+                builtin_detected = true;
+                DEBUG_PRINT("Detected builtin %s", builtins[i]);
+                break;
+            }
+        }
+
+        if (builtin_detected)
         {
             continue;
         }
