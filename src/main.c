@@ -142,6 +142,24 @@ int main()
                     perror("pwd");
                 }
             }
+            else if (strcmp(argv[0], "export") == 0)
+            {
+                if (argv[1] != NULL)
+                {
+                    char *variable = strtok(argv[1], "=");
+                    char *value = strtok(NULL, "=");
+                    if (variable != NULL && value != NULL)
+                    {
+                        DEBUG_PRINT("set %s=%s", variable, value);
+                        setenv(variable, value, 1);
+                        DEBUG_PRINT("env value %s=%s", variable, getenv(variable));
+                    }
+                    else
+                    {
+                        printf("Cant parse variable and value\n");
+                    }
+                }
+            }
 
             continue;
         }
