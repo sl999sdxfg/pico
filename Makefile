@@ -12,7 +12,7 @@ $(error No C sources found in $(SRC_DIR))
 endif
 
 CFLAGS_COMMON = -Wall -Wextra -Werror -std=c11
-CFLAGS_DEBUG   = $(CFLAGS_COMMON) -g3 -O0 -fsanitize=address,undefined -fno-omit-frame-pointer
+CFLAGS_DEBUG   = $(CFLAGS_COMMON) -g3 -DDEBUG -O0 -fsanitize=address,undefined -fno-omit-frame-pointer
 CFLAGS_RELEASE = $(CFLAGS_COMMON) -O2 -DNDEBUG -march=native -flto
 
 DEPFLAGS = -MMD -MP
