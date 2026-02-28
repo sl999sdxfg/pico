@@ -91,6 +91,46 @@ int main()
 
         if (builtin_detected)
         {
+            if (strcmp(argv[0], "exit") == 0)
+            {
+                if (argv[1] == NULL || (strcmp(argv[1], "0") == 0))
+                {
+                    exit(EXIT_SUCCESS);
+                }
+                else
+                {
+                    // TODO: replace atoi to something with better error handling
+                    int code = atoi(argv[1]);
+                    if (code == 0)
+                    {
+                        printf("exit: Invalid argument\n");
+                    }
+                    else
+                    {
+                        exit(code);
+                    }
+                }
+            }
+            else if (strcmp(argv[0], "cd") == 0)
+            {
+                if (argv[1] == NULL)
+                {
+                    char *home_path = getenv("HOME");
+                    if (chdir(home_path) == -1)
+                    {
+                        perror("cd");
+                    }
+                    DEBUG_PRINT("home path %s", home_path);
+                }
+                else
+                {
+                    if (chdir(argv[1]) == -1)
+                    {
+                        perror("cd");
+                    }
+                }
+            }
+
             continue;
         }
 
