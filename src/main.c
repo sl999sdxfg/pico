@@ -1,5 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 
+#include <pwd.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +10,9 @@
 #include <unistd.h>
 #include "ansi.h"
 
-#define SHELL_PROMPT printf(FG_GREEN "user@host" COLOR_RESET ":" FG_BLUE "~/" COLOR_RESET "$ ");
+#define SHELL_PROMPT(usr, host, cwd) printf(FG_GREEN "%s@%s" COLOR_RESET ":" FG_BLUE \
+                                                     "%s" COLOR_RESET "$ ",          \
+                                            host, usr, cwd);
 #ifdef DEBUG
 #define DEBUG_PRINT(format, ...)                       \
     fprintf(stdout, "DEBUG: %s:%d:%s(): " format "\n", \
@@ -28,9 +31,21 @@ int main()
     size_t len = 0;
     ssize_t chars_read;
 
+    // structures to make prompt nice
+    char cwd[1024] = {'~', '\0'};
+    char usr[256] = {'\0'};
+    char host[64] = {'\0'};
+
+    // is this safe? wouldn't work concurrently. getting username, current dir and hostname
+    int uid = getuid();
+    struct passwd *pwuser = getpwuid(uid);
+    strcpy(usr, pwuser->pw_name);
+    gethostname(host, sizeof(host));
+
     do
     {
-        SHELL_PROMPT
+        SHELL_PROMPT(host, usr, cwd)
+
         chars_read = getline(&input, &len, stdin);
         if (chars_read >= 1)
         {
@@ -40,7 +55,7 @@ int main()
         }
         else
         {
-            // perror("Error reading line");
+            perror("Error reading line");
             printf("\n");
             exit(EXIT_SUCCESS);
         }
@@ -128,6 +143,11 @@ int main()
                     {
                         perror("cd");
                     }
+                }
+                // do i have to handle getcwd() == NULL?
+                if (getcwd(cwd, sizeof(cwd)) == NULL)
+                {
+                    perror("getcwd");
                 }
             }
             else if (strcmp(argv[0], "pwd") == 0)
