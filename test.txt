@@ -1,0 +1,10 @@
+cd ~/pico  # or wherever your shell project is
+cat > test_step2_1.txt << 'EOF'
+cmd>file
+ls<input
+cat|grep
+echo&
+pwd;ls
+cmd > file
+EOF
+exit
