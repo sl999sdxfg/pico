@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "builtins.h"
 #include "debug.h"
 
 int exit_(char *argv[])
