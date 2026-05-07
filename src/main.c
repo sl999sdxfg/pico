@@ -1,5 +1,3 @@
-#define _POSIX_C_SOURCE 200809L
-
 #include <pwd.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -8,22 +6,20 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 #include "ansi.h"
+#include "builtins.h"
+#include "debug.h"
+// TODO: refactor macros
+// TODO: change perror into fprintf(stderror)
+// strerror(errno) where appropriate
+// when shell should terminate?
+// REFACTOR: no magic constants
+// maybe define some structs to clean up mess
 
 #define SHELL_PROMPT(usr, host, cwd) printf(FG_GREEN "%s@%s" COLOR_RESET ":" FG_BLUE \
                                                      "%s" COLOR_RESET "$ ",          \
                                             host, usr, cwd);
-#ifdef DEBUG
-#define DEBUG_PRINT(format, ...)                       \
-    fprintf(stdout, "DEBUG: %s:%d:%s(): " format "\n", \
-            __FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#define PARENT_PRINT(fmt, ...) printf(FG_BRIGHT_GREEN "[PARENT]" COLOR_RESET " " fmt "\n", ##__VA_ARGS__)
-#define CHILD_PRINT(fmt, ...) printf(FG_BRIGHT_CYAN "[CHILD]" COLOR_RESET " " fmt "\n", ##__VA_ARGS__)
-#else
-#define DEBUG_PRINT(...) ((void)0)
-#define CHILD_PRINT(...) ((void)0)
-#define PARENT_PRINT(...) ((void)0)
-#endif
 
 int main()
 {
@@ -32,7 +28,8 @@ int main()
     ssize_t chars_read;
 
     // structures to make prompt nice
-    char cwd[1024] = {'~', '\0'};
+    // TODO: when SHELL_PROMT first runs should set cwd
+    char cwd[1024] = {'/', '\0'};
     char usr[256] = {'\0'};
     char host[64] = {'\0'};
 
@@ -92,103 +89,31 @@ int main()
         }
 
         // check for builtins
-        const char *builtins[] = {"cd", "echo", "exit", "export", "pwd", "env", "set", "unset", NULL};
-        bool builtin_detected = false;
-        for (int i = 0; builtins[i] != NULL; i++)
+        // const char *builtins[] = {"cd", "echo", "exit", "export", "pwd", "env", "set", "unset", NULL};
+        // DEBUG_PRINT("Detected builtin %s", builtins[i]);
+        if (strcmp(argv[0], "exit") == 0)
         {
-            if (strcmp(argv[0], builtins[i]) == 0)
-            {
-                builtin_detected = true;
-                DEBUG_PRINT("Detected builtin %s", builtins[i]);
-                break;
-            }
+            exit_(argv);
+            continue;
         }
-
-        if (builtin_detected)
+        else if (strcmp(argv[0], "cd") == 0)
         {
-            if (strcmp(argv[0], "exit") == 0)
-            {
-                if (argv[1] == NULL || (strcmp(argv[1], "0") == 0))
-                {
-                    exit(EXIT_SUCCESS);
-                }
-                else
-                {
-                    // TODO: replace atoi to something with better error handling
-                    int code = atoi(argv[1]);
-                    if (code == 0)
-                    {
-                        printf("exit: Invalid argument\n");
-                    }
-                    else
-                    {
-                        exit(code);
-                    }
-                }
-            }
-            else if (strcmp(argv[0], "cd") == 0)
-            {
-                if (argv[1] == NULL)
-                {
-                    char *home_path = getenv("HOME");
-                    if (chdir(home_path) == -1)
-                    {
-                        perror("cd");
-                    }
-                    DEBUG_PRINT("home path %s", home_path);
-                }
-                else
-                {
-                    if (chdir(argv[1]) == -1)
-                    {
-                        perror("cd");
-                    }
-                }
-                // do i have to handle getcwd() == NULL?
-                if (getcwd(cwd, sizeof(cwd)) == NULL)
-                {
-                    perror("getcwd");
-                }
-            }
-            else if (strcmp(argv[0], "pwd") == 0)
-            {
-                char cwd[1024] = {'\0'};
-                if (getcwd(cwd, sizeof(cwd)) != NULL)
-                {
-                    printf("%s\n", cwd);
-                }
-                else
-                {
-                    perror("pwd");
-                }
-            }
-            else if (strcmp(argv[0], "export") == 0)
-            {
-                if (argv[1] != NULL)
-                {
-                    char *variable = strtok(argv[1], "=");
-                    char *value = strtok(NULL, "=");
-                    if (variable != NULL && value != NULL)
-                    {
-                        DEBUG_PRINT("set %s=%s", variable, value);
-                        setenv(variable, value, 1);
-                        DEBUG_PRINT("env value %s=%s", variable, getenv(variable));
-                    }
-                    else
-                    {
-                        printf("Cant parse variable and value\n");
-                    }
-                }
-            }
-            else if (strcmp(argv[0], "echo") == 0)
-            {
-                for (int i = 1; argv[i] != NULL; i++)
-                {
-                    printf("%s ", argv[i]);
-                }
-                printf("\n");
-            }
-
+            cd(argv, cwd, sizeof(cwd));
+            continue;
+        }
+        else if (strcmp(argv[0], "pwd") == 0)
+        {
+            pwd();
+            continue;
+        }
+        else if (strcmp(argv[0], "export") == 0)
+        {
+            export(argv);
+            continue;
+        }
+        else if (strcmp(argv[0], "echo") == 0)
+        {
+            echo(argv);
             continue;
         }
 
@@ -224,7 +149,6 @@ int main()
                 PARENT_PRINT("Child exited normally");
             }
         }
-
     } while (chars_read != -1);
 
     free(input);
